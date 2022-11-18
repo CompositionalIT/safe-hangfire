@@ -1,2 +1,5 @@
 Saturn
 Fable.Remoting.Giraffe
+Hangfire.Core
+Hangfire.SqlServer
+Hangfire.AspNetCore

@@ -5,6 +5,9 @@ storage: none
 nuget Fable.Remoting.Giraffe
 nuget Saturn
 nuget Expecto
+nuget Hangfire.Core
+nuget Hangfire.SqlServer
+nuget Hangfire.AspNetCore
 
 nuget Fable.Core
 nuget Fable.Elmish
