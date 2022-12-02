@@ -38,7 +38,12 @@ let todosApi =
                     match Storage.addTodo todo with
                     | Ok () -> todo
                     | Error e -> failwith e
-            } }
+            }
+      queueJob =
+          fun () ->
+              async {
+                  BackgroundJob.Enqueue(fun () -> Console.WriteLine $"Job queued at {DateTime.Now}") |> ignore
+              } }
 
 let webApp =
     Remoting.createApi ()

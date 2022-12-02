@@ -11,6 +11,7 @@ type Msg =
     | SetInput of string
     | AddTodo
     | AddedTodo of Todo
+    | QueueJob
 
 let todosApi =
     Remoting.createApi ()
@@ -35,6 +36,7 @@ let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
 
         { model with Input = "" }, cmd
     | AddedTodo todo -> { model with Todos = model.Todos @ [ todo ] }, Cmd.none
+    | QueueJob -> model, Cmd.OfAsync.attempt todosApi.queueJob () (fun _ -> failwith "Error queuing a job.")
 
 open Feliz
 open Feliz.Bulma
@@ -110,6 +112,13 @@ let view (model: Model) (dispatch: Msg -> unit) =
                             Bulma.title [
                                 text.hasTextCentered
                                 prop.text "safe_hangfire"
+                            ]
+                            Bulma.buttons [
+                                Bulma.button.button [
+                                    color.isPrimary
+                                    prop.onClick (fun _ -> dispatch QueueJob)
+                                    prop.text "Queue a job"
+                                ]
                             ]
                             containerBox model dispatch
                         ]
