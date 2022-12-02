@@ -1,4 +1,5 @@
 {
+    "name": "safe-hangfire",
     "private": true,
     "engines": {
         "node": "~16",
