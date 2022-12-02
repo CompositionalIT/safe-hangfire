@@ -1,5 +1,11 @@
 module Server
 
+open Microsoft.AspNetCore.Builder
+open Microsoft.Extensions.Configuration
+open Microsoft.Extensions.DependencyInjection
+open Hangfire
+open Hangfire.SqlServer
+open System
 open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
 open Saturn
@@ -40,6 +46,34 @@ let webApp =
     |> Remoting.fromValue todosApi
     |> Remoting.buildHttpHandler
 
+let configureServices (services: IServiceCollection) =
+    let config = services.BuildServiceProvider().GetService<IConfiguration>()
+
+    services.AddHangfire(fun (configuration: IGlobalConfiguration) ->
+        configuration
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(
+                 config.GetConnectionString("HangfireConnection"),
+                 SqlServerStorageOptions
+                    (
+                        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                        QueuePollInterval = TimeSpan.Zero,
+                        UseRecommendedIsolationLevel = true,
+                        DisableGlobalLocks = true
+                    ))
+            |> ignore)
+    |> ignore
+
+    services.AddHangfireServer() |> ignore
+
+    services
+
+let configure (app: IApplicationBuilder) =
+    app.UseHangfireDashboard()
+
 let app =
     application {
         url "http://*:8085"
@@ -47,6 +81,8 @@ let app =
         memory_cache
         use_static "public"
         use_gzip
+        service_config configureServices
+        app_config configure
     }
 
 [<EntryPoint>]
